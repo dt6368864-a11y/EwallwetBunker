@@ -1,6 +1,6 @@
-const { faker } = require('@faker-js/faker');
+import { faker } from '@faker-js/faker';
 
-function generateTransactionHistory(count) {
+export function generateTransactionHistory(count) {
     const transactions = [];
 
     for (let i = 0; i < count; i++) {
@@ -23,11 +23,7 @@ function generateTransactionHistory(count) {
     return transactions;
 }
 
-/**
- * REQUISITO FASE 2 - Regla de Negocio:
- * Calcula el Saldo Neto Total sumando ingresos y restando retiros completados.
- */
-function calculateNetBalance(transactions) {
+export function calculateNetBalance(transactions) {
     if (!transactions || !Array.isArray(transactions)) return 0;
 
     return transactions.reduce((total, tx) => {
@@ -39,8 +35,3 @@ function calculateNetBalance(transactions) {
         return total;
     }, 0);
 }
-
-module.exports = {
-    generateTransactionHistory,
-    calculateNetBalance
-};
