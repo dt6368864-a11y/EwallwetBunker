@@ -29,13 +29,14 @@ describe('Wallet Engine - Pruebas Unitarias TDD', () => {
     test('4. Prueba de Regla de Negocio: Cálculo preciso del Saldo Neto', () => {
         const mockTransactions = [
             { type: 'Ingreso', amount: 150000, status: 'Completado' },
-            { type: 'Retiro', amount: 50000, status: 'Completado' },  // Resta
-            { type: 'Ingreso', amount: 30000, status: 'Pendiente' },   // Suma
-            { type: 'Retiro', amount: 20000, status: 'Pendiente' }    // Ignora (no completado)
+            { type: 'Retiro', amount: 50000, status: 'Completado' },
+            { type: 'Ingreso', amount: 30000, status: 'Pendiente' },
+            { type: 'Retiro', amount: 20000, status: 'Pendiente' }
         ];
 
-        // Operación: 150000 - 50000 + 30000 = 130000
+        // 150000 - 50000 + 30000 = 130000
         const saldoNeto = calculateNetBalance(mockTransactions);
         expect(saldoNeto).toBe(130000);
     });
+
 });

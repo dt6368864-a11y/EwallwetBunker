@@ -1,8 +1,5 @@
 const { faker } = require('@faker-js/faker');
 
-// Configuración regional en español para Faker
-faker.locale = 'es';
-
 function generateTransactionHistory(count) {
     const transactions = [];
 
@@ -32,7 +29,7 @@ function generateTransactionHistory(count) {
  */
 function calculateNetBalance(transactions) {
     if (!transactions || !Array.isArray(transactions)) return 0;
-    
+
     return transactions.reduce((total, tx) => {
         if (tx.type === 'Ingreso') {
             return total + tx.amount;
