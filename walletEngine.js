@@ -1,0 +1,49 @@
+const { faker } = require('@faker-js/faker');
+
+// Configuración regional en español para Faker
+faker.locale = 'es';
+
+function generateTransactionHistory(count) {
+    const transactions = [];
+
+    for (let i = 0; i < count; i++) {
+        transactions.push({
+            id: faker.string.uuid(),
+            accountNumber: faker.finance.accountNumber(10),
+            type: faker.helpers.arrayElement(['Ingreso', 'Retiro']),
+            amount: Number(
+                faker.finance.amount({
+                    min: 10000,
+                    max: 500000,
+                    dec: 0
+                })
+            ),
+            date: faker.date.recent({ days: 30 }),
+            status: faker.helpers.arrayElement(['Completado', 'Pendiente', 'Rechazado'])
+        });
+    }
+
+    return transactions;
+}
+
+/**
+ * REQUISITO FASE 2 - Regla de Negocio:
+ * Calcula el Saldo Neto Total sumando ingresos y restando retiros completados.
+ */
+function calculateNetBalance(transactions) {
+    if (!transactions || !Array.isArray(transactions)) return 0;
+    
+    return transactions.reduce((total, tx) => {
+        if (tx.type === 'Ingreso') {
+            return total + tx.amount;
+        } else if (tx.type === 'Retiro' && tx.status === 'Completado') {
+            return total - tx.amount;
+        }
+        return total;
+    }, 0);
+}
+
+module.exports = {
+    generateTransactionHistory,
+    calculateNetBalance
+};
