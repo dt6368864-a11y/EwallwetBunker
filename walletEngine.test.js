@@ -1,7 +1,7 @@
 const { faker } = require('@faker-js/faker');
 
 // ─────────────────────────────────────────────────────────────────
-//  Réplicas locales de walletEngine.js para Jest (sin transpilación ESM)
+//  Replicas locales de walletEngine.js para Jest (sin transpilación ESM)
 // ─────────────────────────────────────────────────────────────────
 const ADSO_POINTS_RATE  = 0.01;
 const ADSO_MIN_AMOUNT   = 50000;
