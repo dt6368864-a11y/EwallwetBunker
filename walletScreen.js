@@ -1,17 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  TextInput,
-  Modal,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert
-} from 'react-native';
+import {View, Text, TouchableOpacity, FlatList, StyleSheet, TextInput, Modal, ScrollView, KeyboardAvoidingView, Platform, Alert} from 'react-native';
 
 import {
   generateTransactionHistory,
