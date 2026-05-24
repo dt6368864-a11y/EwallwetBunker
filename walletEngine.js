@@ -3,33 +3,19 @@ import { faker } from '@faker-js/faker';
 // ═══════════════════════════════════════════════════════════════
 //  CONSTANTES DEL SISTEMA ADSO
 // ═══════════════════════════════════════════════════════════════
-export const ADSO_POINTS_RATE    = 0.01;   // 1% del monto
-export const ADSO_MIN_AMOUNT     = 50000;  // umbral mínimo en COP
-export const ADSO_VALID_STATUS   = 'Completado';
+export const ADSO_POINTS_RATE  = 0.01;
+export const ADSO_MIN_AMOUNT   = 50000;
+export const ADSO_VALID_STATUS = 'Completado';
 
 // ═══════════════════════════════════════════════════════════════
 //  PUNTOS ADSO — cálculo por transacción individual
-//
-//  Reglas de negocio:
-//    • Solo status === 'Completado' califica
-//    • Solo amount > 50,000 COP califica  (50,000 exacto NO aplica)
-//    • Retornamos Math.floor para puntos enteros
 // ═══════════════════════════════════════════════════════════════
 export function calculateADSOPoints(transaction) {
     if (!transaction || typeof transaction !== 'object') return 0;
-
     const { amount, status } = transaction;
-
-    // Validar tipos
     if (typeof amount !== 'number' || typeof status !== 'string') return 0;
-
-    // Regla 1 — solo transacciones Completado
     if (status !== ADSO_VALID_STATUS) return 0;
-
-    // Regla 2 — monto estrictamente mayor a 50,000
     if (amount <= ADSO_MIN_AMOUNT) return 0;
-
-    // Cálculo: 1% del monto, redondeado hacia abajo
     return Math.floor(amount * ADSO_POINTS_RATE);
 }
 
@@ -38,15 +24,11 @@ export function calculateADSOPoints(transaction) {
 // ═══════════════════════════════════════════════════════════════
 export function calculateTotalADSOPoints(transactions) {
     if (!transactions || !Array.isArray(transactions)) return 0;
-
-    return transactions.reduce((total, tx) => {
-        return total + calculateADSOPoints(tx);
-    }, 0);
+    return transactions.reduce((total, tx) => total + calculateADSOPoints(tx), 0);
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  GENERACIÓN DE HISTORIAL DE TRANSACCIONES
-//  Ahora incluye el campo `puntosADSO` calculado dinámicamente
+//  GENERACIÓN DE HISTORIAL DE TRANSACCIONES (normal)
 // ═══════════════════════════════════════════════════════════════
 export function generateTransactionHistory(count) {
     const transactions = [];
@@ -67,13 +49,80 @@ export function generateTransactionHistory(count) {
             status,
         };
 
-        // Campo dinámico calculado en el momento de generación
         tx.puntosADSO = calculateADSOPoints(tx);
-
         transactions.push(tx);
     }
 
     return transactions;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GENERACIÓN CON RETIROS MASIVOS — fuerza "Gasto Crítico"
+//
+//  Genera un historial donde el 85% son Retiros Completados
+//  y solo el 15% son Ingresos, garantizando que la alerta
+//  de Gasto Crítico siempre se dispare.
+// ═══════════════════════════════════════════════════════════════
+export function generateCriticalSpendingHistory(count = 100) {
+    const transactions = [];
+
+    for (let i = 0; i < count; i++) {
+        // 85% retiros, 15% ingresos
+        const isCritical = i < Math.floor(count * 0.85);
+        const type       = isCritical ? 'Retiro' : 'Ingreso';
+
+        // Los retiros son montos altos; los ingresos, bajos
+        const amount = isCritical
+            ? Number(faker.finance.amount({ min: 200000, max: 500000, dec: 0 }))
+            : Number(faker.finance.amount({ min: 10000,  max: 50000,  dec: 0 }));
+
+        const tx = {
+            id:            faker.string.uuid(),
+            accountNumber: faker.finance.accountNumber(10),
+            type,
+            amount,
+            date:          faker.date.recent({ days: 30 }),
+            status:        'Completado',
+        };
+
+        tx.puntosADSO = calculateADSOPoints(tx);
+        transactions.push(tx);
+    }
+
+    return transactions;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CLASIFICADOR DE COMPORTAMIENTO DE GASTO
+//
+//  Calcula: totalRetiros / totalIngresos * 100
+//  • retiros > 70% de ingresos  →  'Gasto Crítico'
+//  • retiros ≤ 70% de ingresos  →  'Estable'
+//
+//  @param {Array} transactions  - Historial de transacciones
+//  @returns {'Gasto Crítico' | 'Estable'}
+// ═══════════════════════════════════════════════════════════════
+export function classifySpendingBehavior(transactions) {
+    if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
+        return 'Estable';
+    }
+
+    const totalIngresos = transactions
+        .filter(tx => tx.type === 'Ingreso')
+        .reduce((sum, tx) => sum + tx.amount, 0);
+
+    const totalRetiros = transactions
+        .filter(tx => tx.type === 'Retiro')
+        .reduce((sum, tx) => sum + tx.amount, 0);
+
+    // Sin ingresos y con retiros → siempre Gasto Crítico
+    if (totalIngresos === 0) {
+        return totalRetiros > 0 ? 'Gasto Crítico' : 'Estable';
+    }
+
+    const ratio = (totalRetiros / totalIngresos) * 100;
+
+    return ratio > 70 ? 'Gasto Crítico' : 'Estable';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -94,7 +143,6 @@ export function calculateNetBalance(transactions) {
 
 // ═══════════════════════════════════════════════════════════════
 //  TASA DE CAMBIO SIMULADA COP → USDT
-//  Faker fluctúa entre $3,900 y $4,300 COP/USDT
 // ═══════════════════════════════════════════════════════════════
 export function generateExchangeRate() {
     return faker.number.int({ min: 3900, max: 4300 });
@@ -102,19 +150,6 @@ export function generateExchangeRate() {
 
 // ═══════════════════════════════════════════════════════════════
 //  COMPRA DE DÓLARES DIGITALES (USDT simulado)
-//
-//  @param {number} copBalance   - Saldo disponible en COP
-//  @param {number} copAmount    - Monto en COP a convertir
-//  @param {number} exchangeRate - Tasa generada por generateExchangeRate()
-//
-//  @returns {{
-//    status:       'Aprobado' | 'Rechazado',
-//    usdt:         number,
-//    copSpent:     number,
-//    exchangeRate: number,
-//    remainingCOP: number,
-//    reason:       string | null
-//  }}
 // ═══════════════════════════════════════════════════════════════
 export function purchaseUSDT({ copBalance, copAmount, exchangeRate }) {
 
@@ -141,7 +176,6 @@ export function purchaseUSDT({ copBalance, copAmount, exchangeRate }) {
                  reason: 'Saldo COP insuficiente' };
     }
 
-    // Conversión exacta: USDT = COP / tasa (6 decimales estándar USDT)
     const usdt         = parseFloat((copAmount / exchangeRate).toFixed(6));
     const remainingCOP = copBalance - copAmount;
 

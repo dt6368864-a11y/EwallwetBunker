@@ -11,6 +11,8 @@ import {
   calculateTotalADSOPoints,
   generateExchangeRate,
   purchaseUSDT,
+  classifySpendingBehavior,
+  generateCriticalSpendingHistory,
 } from './walletEngine';
 
 import {
@@ -57,6 +59,21 @@ export default function WalletScreen() {
   const [showGoalModal, setShowGoalModal]  = useState(false);
   const [selectedGoal,  setSelectedGoal]  = useState(null);
   const [goalInput,     setGoalInput]     = useState('');
+
+  // ── Estado: clasificador de gasto ─────────────────────────
+  //    Por defecto usa el historial normal; el botón inyecta
+  //    el dataset crítico de Faker para forzar la alerta.
+  const spendingStatus = useMemo(() => classifySpendingBehavior(data), []);
+  const [gastoCritico, setGastoCritico] = useState(spendingStatus);
+
+  const handleSimulateCritical = useCallback(() => {
+    const criticalData = generateCriticalSpendingHistory(100);
+    setGastoCritico(classifySpendingBehavior(criticalData));
+  }, []);
+
+  const handleResetSpending = useCallback(() => {
+    setGastoCritico(classifySpendingBehavior(data));
+  }, []);
 
   // ── Filtrado rápido ────────────────────────────────────────
   const filteredData = useMemo(() => {
@@ -175,6 +192,34 @@ export default function WalletScreen() {
           </View>
         </View>
         <Text style={styles.adsoValue}>{fmt(adsoPoints)} pts</Text>
+      </View>
+
+      {/* ── ALERTA GASTO CRÍTICO ── */}
+      <View style={[
+        styles.spendingCard,
+        gastoCritico === 'Gasto Crítico' ? styles.spendingCritical : styles.spendingStable,
+      ]}>
+        <View style={styles.spendingLeft}>
+          <Text style={styles.spendingIcon}>
+            {gastoCritico === 'Gasto Crítico' ? '🚨' : '✅'}
+          </Text>
+          <View>
+            <Text style={styles.spendingLabel}>{gastoCritico}</Text>
+            <Text style={styles.spendingSub}>
+              {gastoCritico === 'Gasto Crítico'
+                ? 'Tus retiros superan el 70% de tus ingresos'
+                : 'Tus retiros están dentro del límite saludable'}
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={gastoCritico === 'Gasto Crítico' ? handleResetSpending : handleSimulateCritical}
+          style={styles.spendingBtn}
+        >
+          <Text style={styles.spendingBtnTxt}>
+            {gastoCritico === 'Gasto Crítico' ? 'Resetear' : 'Simular'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* ── BOTÓN COMPRAR USDT ── */}
@@ -502,4 +547,21 @@ const styles = StyleSheet.create({
   confirmBtn:      { backgroundColor: '#1565c0', paddingVertical: 15, borderRadius: 10,
                      alignItems: 'center', marginTop: 4 },
   confirmTxt:      { color: '#fff', fontSize: 16, fontWeight: '800' },
+
+  // Gasto Crítico
+  spendingCard:    { borderRadius: 12, padding: 14, flexDirection: 'row',
+                     justifyContent: 'space-between', alignItems: 'center',
+                     marginBottom: 12, elevation: 3,
+                     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+                     shadowOpacity: 0.12, shadowRadius: 4,
+                     borderLeftWidth: 4 },
+  spendingCritical:{ backgroundColor: '#ffebee', borderLeftColor: '#c62828' },
+  spendingStable:  { backgroundColor: '#e8f5e9', borderLeftColor: '#2e7d32' },
+  spendingLeft:    { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  spendingIcon:    { fontSize: 28 },
+  spendingLabel:   { fontSize: 14, fontWeight: '800', color: '#333' },
+  spendingSub:     { fontSize: 11, color: '#888', marginTop: 2, flexShrink: 1 },
+  spendingBtn:     { backgroundColor: 'rgba(0,0,0,0.08)', paddingHorizontal: 12,
+                     paddingVertical: 6, borderRadius: 8 },
+  spendingBtnTxt:  { fontSize: 12, fontWeight: '700', color: '#333' },
 });
