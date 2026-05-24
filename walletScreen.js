@@ -61,8 +61,7 @@ export default function WalletScreen() {
   const [goalInput,     setGoalInput]     = useState('');
 
   // ── Estado: clasificador de gasto ─────────────────────────
-  //    Por defecto usa el historial normal; el botón inyecta
-  //    el dataset crítico de Faker para forzar la alerta.
+ 
   const spendingStatus = useMemo(() => classifySpendingBehavior(data), []);
   const [gastoCritico, setGastoCritico] = useState(spendingStatus);
 
