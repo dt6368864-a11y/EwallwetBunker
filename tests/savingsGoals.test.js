@@ -1,5 +1,4 @@
 import { Wallet } from '../src/savingsGoals';
-import { faker } from '@faker-js/faker';
 
 describe('Savings Goal Feature', () => {
     let wallet;
@@ -7,32 +6,74 @@ describe('Savings Goal Feature', () => {
     beforeEach(() => {
         wallet = new Wallet();
         wallet.setAvailableBalance(100000);
-        wallet.createSavingsGoal('Para la Moto', 30000);
+        wallet.createSavingsGoal('Para la Moto',      30000);
         wallet.createSavingsGoal('Para el concierto', 15000);
     });
 
-    test('Debería transferir dinero a un objetivo de ahorro', () => {
+    // ── TRANSFERENCIA BÁSICA ────────────────────────────────────
+    test('transfiere dinero a un objetivo y lo resta del saldo disponible', () => {
         wallet.transferToGoal('Para la Moto', 5000);
-        
-        expect(wallet.savingsGoals.find(g => g.name === 'Para la Moto').balance).toBe(35000);
+
+        // El saldo disponible baja exactamente el monto transferido
         expect(wallet.availableBalance).toBe(95000);
+
+        // La meta sube exactamente ese monto
+        expect(wallet.savingsGoals.find(g => g.name === 'Para la Moto').balance).toBe(35000);
     });
 
-    test('No debería permitir transferencias que superen el saldo disponiblee', () => {
-        expect(() => wallet.transferToGoal('Para la Moto', 200000)).toThrow('Saldo insuficiente');
+    // ── SALDO INSUFICIENTE ──────────────────────────────────────
+    test('no permite transferencias que superen el saldo disponible', () => {
+        expect(() => wallet.transferToGoal('Para la Moto', 200000))
+            .toThrow('Saldo insuficiente');
     });
 
-    test('No debería permitir transferencias negativaas o ceroo', () => {
-        expect(() => wallet.transferToGoal('Para la Moto', -1000)).toThrow('El monto debe ser mayor a cero');
+    // ── MONTOS INVÁLIDOS ────────────────────────────────────────
+    test('no permite transferencias negativas', () => {
+        expect(() => wallet.transferToGoal('Para la Moto', -1000))
+            .toThrow('El monto debe ser mayor a cero');
     });
 
-    test('Debería sumarse el saldo total de la billetera y los objetivos de ahorro', () => {
+    test('no permite transferencias de cero', () => {
+        expect(() => wallet.transferToGoal('Para la Moto', 0))
+            .toThrow('El monto debe ser mayor a cero');
+    });
+
+    // ── TOTAL CORRECTO (saldo disponible + todas las metas) ─────
+    test('el total suma saldo disponible y todas las metas sin duplicar dinero', () => {
         wallet.transferToGoal('Para la Moto', 5000);
-        const totalBalance = wallet.getTotalBalance();
-        expect(totalBalance).toBe(100000 + 35000 + 15000); // 100000 - 5000 + 35000 + 15000
+
+        // disponible: 100,000 - 5,000 = 95,000
+        // metas:      35,000 + 15,000 = 50,000
+        // total:      95,000 + 50,000 = 145,000
+        expect(wallet.getTotalBalance()).toBe(145000);
     });
 
-    test('Debería lanzar un error si el objetivo de ahorro no existe', () => {
-        expect(() => wallet.transferToGoal('Objetivo Inexistente', 5000)).toThrow('Objetivo de ahorro no encontrado');
+    test('el total antes de cualquier transferencia es correcto', () => {
+        // disponible: 100,000 | metas: 30,000 + 15,000 = 45,000 | total: 145,000
+        expect(wallet.getTotalBalance()).toBe(145000);
+    });
+
+    // ── OBJETIVO INEXISTENTE ────────────────────────────────────
+    test('lanza error si el objetivo de ahorro no existe', () => {
+        expect(() => wallet.transferToGoal('Objetivo Inexistente', 5000))
+            .toThrow('Objetivo de ahorro no encontrado');
+    });
+
+    // ── EL DINERO NO SE DUPLICA NI QUEDA EN EL LIMBO ───────────
+    test('el dinero transferido no se duplica ni queda flotando', () => {
+        const totalAntes = wallet.getTotalBalance();
+
+        wallet.transferToGoal('Para el concierto', 10000);
+
+        const totalDespues = wallet.getTotalBalance();
+
+        // El total global debe ser idéntico antes y después
+        expect(totalDespues).toBe(totalAntes);
+
+        // El saldo disponible bajó exactamente 10,000
+        expect(wallet.availableBalance).toBe(90000);
+
+        // La meta subió exactamente 10,000
+        expect(wallet.savingsGoals.find(g => g.name === 'Para el concierto').balance).toBe(25000);
     });
 });
