@@ -59,7 +59,7 @@ describe('Savings Goal Feature', () => {
             .toThrow('Objetivo de ahorro no encontrado');
     });
 
-    // ── EL DINERO NO SE DUPLICA NI QUEDA EN EL LIMBO ───────────
+    // ── EL DINERO NO SE DUPLICA  ───────────
     test('el dinero transferido no se duplica ni queda flotando', () => {
         const totalAntes = wallet.getTotalBalance();
 
