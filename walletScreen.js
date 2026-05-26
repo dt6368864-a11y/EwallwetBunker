@@ -1,24 +1,9 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import {
-  View, Text, TouchableOpacity, FlatList, StyleSheet,
-  TextInput, Modal, ScrollView, KeyboardAvoidingView,
-  Platform, Alert,
-} from 'react-native';
+import {View, Text, TouchableOpacity, FlatList, StyleSheet,TextInput, Modal, ScrollView, KeyboardAvoidingView,Platform, Alert,} from 'react-native';
 
-import {
-  generateTransactionHistory,
-  calculateNetBalance,
-  calculateTotalADSOPoints,
-  generateExchangeRate,
-  purchaseUSDT,
-  classifySpendingBehavior,
-  generateCriticalSpendingHistory,
-} from './walletEngine';
+import {generateTransactionHistory,calculateNetBalance,calculateTotalADSOPoints,generateExchangeRate,purchaseUSDT,classifySpendingBehavior,generateCriticalSpendingHistory,} from './walletEngine';
 
-import {
-  Wallet,
-  generateSampleSavingsGoals,
-} from './src/savingsGoals';
+import {Wallet,generateSampleSavingsGoals,} from './src/savingsGoals';
 
 // ── 200 registros Faker ────────────────────────────────────────
 const data = generateTransactionHistory(200);
