@@ -1,10 +1,4 @@
-import {
-    purchaseUSDT,
-    calculateADSOPoints,
-    calculateTotalADSOPoints,
-    classifySpendingBehavior,
-    generateCriticalSpendingHistory,
-} from '../walletEngine';
+import {purchaseUSDT,calculateADSOPoints,calculateTotalADSOPoints,classifySpendingBehavior,generateCriticalSpendingHistory,} from '../walletEngine';
 
 // ═══════════════════════════════════════════════════════════════
 //  SUITE 1 — COMPRA DE USDT
