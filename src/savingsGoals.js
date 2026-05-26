@@ -50,6 +50,7 @@ export class Wallet {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  FUNCIONES AUXILIARES CREADAS POR SANTIAGO
 //  GENERADOR DE METAS CON FAKER
 //  ✅ faker.number.int en lugar de faker.datatype.number (eliminado en v9)
 // ═══════════════════════════════════════════════════════════════
