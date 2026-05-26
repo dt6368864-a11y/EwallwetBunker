@@ -58,11 +58,8 @@ export function generateTransactionHistory(count) {
 
 // ═══════════════════════════════════════════════════════════════
 //  GENERACIÓN CON RETIROS MASIVOS — fuerza "Gasto Crítico"
-//
-//  Genera un historial donde el 85% son Retiros Completados
-//  y solo el 15% son Ingresos, garantizando que la alerta
-//  de Gasto Crítico siempre se dispare.
 // ═══════════════════════════════════════════════════════════════
+
 export function generateCriticalSpendingHistory(count = 100) {
     const transactions = [];
 
@@ -94,14 +91,8 @@ export function generateCriticalSpendingHistory(count = 100) {
 
 // ═══════════════════════════════════════════════════════════════
 //  CLASIFICADOR DE COMPORTAMIENTO DE GASTO
-//
-//  Calcula: totalRetiros / totalIngresos * 100
-//  • retiros > 70% de ingresos  →  'Gasto Crítico'
-//  • retiros ≤ 70% de ingresos  →  'Estable'
-//
-//  @param {Array} transactions  - Historial de transacciones
-//  @returns {'Gasto Crítico' | 'Estable'}
 // ═══════════════════════════════════════════════════════════════
+
 export function classifySpendingBehavior(transactions) {
     if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
         return 'Estable';
